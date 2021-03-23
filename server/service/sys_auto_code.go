@@ -134,6 +134,18 @@ func CreateTemp(autoCode model.AutoCodeStruct) (err error) {
 				return err
 			}
 		}
+		initializeGormFilePath := filepath.Join(global.GVA_CONFIG.AutoCode.Root,
+			global.GVA_CONFIG.AutoCode.Server, global.GVA_CONFIG.AutoCode.SInitialize, "gorm.go")
+		initializeRouterFilePath := filepath.Join(global.GVA_CONFIG.AutoCode.Root,
+			global.GVA_CONFIG.AutoCode.Server, global.GVA_CONFIG.AutoCode.SInitialize, "router.go")
+		err = utils.AutoInjectionCode(initializeGormFilePath, "MysqlTables", "model."+autoCode.StructName+"{},")
+		if err != nil {
+			return err
+		}
+		err = utils.AutoInjectionCode(initializeRouterFilePath, "Routers", "router.Init"+autoCode.StructName+"Router(PrivateGroup)")
+		if err != nil {
+			return err
+		}
 		return errors.New("创建代码成功并移动文件成功")
 	} else { // 打包
 		if err := utils.ZipFiles("./ginvueadmin.zip", fileList, ".", "."); err != nil {
@@ -237,9 +249,6 @@ func addAutoMoveFile(data *tplData) {
 		if strings.Contains(fileSlice[n-1], "js") {
 			data.autoMoveFilePath = filepath.Join(global.GVA_CONFIG.AutoCode.Root,
 				global.GVA_CONFIG.AutoCode.Web, global.GVA_CONFIG.AutoCode.WApi, base)
-		} else if strings.Contains(fileSlice[n-2], "workflowForm") {
-			data.autoMoveFilePath = filepath.Join(global.GVA_CONFIG.AutoCode.Root,
-				global.GVA_CONFIG.AutoCode.Web, global.GVA_CONFIG.AutoCode.WFlow, filepath.Base(filepath.Dir(filepath.Dir(data.autoCodePath))), strings.TrimSuffix(base, filepath.Ext(base))+"WorkflowForm.vue")
 		} else if strings.Contains(fileSlice[n-2], "form") {
 			data.autoMoveFilePath = filepath.Join(global.GVA_CONFIG.AutoCode.Root,
 				global.GVA_CONFIG.AutoCode.Web, global.GVA_CONFIG.AutoCode.WForm, filepath.Base(filepath.Dir(filepath.Dir(data.autoCodePath))), strings.TrimSuffix(base, filepath.Ext(base))+"Form.vue")
